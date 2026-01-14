@@ -1,26 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sizer/sizer.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'core/app_widget.dart';
-import 'core/service_locator.dart' as di;
+import 'package:provider/provider.dart';
 
-/// Point d'entrée principal de l'application Pegasus.
-/// Nous initialisons ici les binding Flutter, les services externes (Firebase, Hive)
-/// et notre injection de dépendances avant de lancer l'interface utilisateur.
+import 'core/app_export.dart';
+import 'core/service_locator.dart' as di;
+import 'core/theme/app_theme.dart';
+import 'core/app_widget.dart'; // Import AppWidget
+
+/// Point d'entrée de l'application Pegasus.
+/// Nous initialisons ici les services critiques et lançons l'interface utilisateur.
 void main() async {
+  // Nous nous assurons que les liaisons Flutter sont initialisées avant toute autre opération.
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Nous initialisons Hive pour le stockage local avant tout le reste
-  // afin de garantir que les données hors-ligne soient accessibles immédiatement.
-  await Hive.initFlutter();
-  
-  // Nous tentons l'initialisation de Firebase.
-  // Note : Cela peut échouer si le fichier google-services.json est manquant,
-  // mais nous attrapons l'erreur pour ne pas bloquer l'application (Graceful Degradation).
-  try {
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint("Erreur d'initialisation Firebase (attendue si config manquante): $e");
   }
 
   // Nous initions notre Service Locator pour l'injection de dépendances.

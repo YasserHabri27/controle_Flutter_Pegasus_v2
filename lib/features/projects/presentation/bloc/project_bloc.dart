@@ -7,6 +7,8 @@ import 'project_event.dart';
 import 'project_state.dart';
 
 /// ProjectBloc : Gestionnaire d'état pour les projets.
+/// ProjectBloc : Gestionnaire d'état pour les projets.
+/// Nous utilisons ce BLoC pour orchestrer les interactions entre l'UI et la couche Domaine (Use Cases).
 class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
   final GetProjects getProjects;
   final CreateProject createProject;
@@ -22,6 +24,8 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     on<UpdateProjectStatusEvent>(_onUpdateProjectStatus);
   }
 
+  /// Charge la liste des projets.
+  /// Nous appelons le usecase getProjects pour récupérer les données depuis le repository.
   Future<void> _onLoadProjects(LoadProjects event, Emitter<ProjectState> emit) async {
     emit(ProjectsLoading());
     final result = await getProjects(NoParams());
@@ -31,6 +35,8 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     );
   }
 
+  /// Crée un nouveau projet.
+  /// Nous construisons l'entité Project avec les données fournies et l'envoyons au système.
   Future<void> _onCreateProject(CreateProjectEvent event, Emitter<ProjectState> emit) async {
     try {
       final newProject = ProjectEntity(
@@ -53,6 +59,8 @@ class ProjectBloc extends Bloc<ProjectEvent, ProjectState> {
     }
   }
 
+  /// Met à jour le statut d'un projet existant.
+  /// Nous créons une copie immuable du projet avec le nouveau statut avant de demander la mise à jour.
   Future<void> _onUpdateProjectStatus(UpdateProjectStatusEvent event, Emitter<ProjectState> emit) async {
     final currentState = state;
     if (currentState is ProjectsLoaded) {

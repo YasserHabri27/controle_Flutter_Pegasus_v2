@@ -17,8 +17,10 @@ import './widgets/project_creation_modal_widget.dart';
 import './widgets/project_empty_state_widget.dart';
 import './widgets/project_filter_chips_widget.dart';
 
-/// Projects screen for visual project creation and task association
-/// Implements Contemporary Productive Minimalism with drag-and-drop functionality
+/// Écran principal de la gestion des projets (ProjectListPage).
+/// Nous mettons en œuvre ici une approche "Contemporary Productive Minimalism" pour l'organisation.
+/// Cette page permet de lister, filtrer, créer et supprimer des projets, tout en affichant
+/// leur progression calculée dynamiquement.
 class ProjectListPage extends StatefulWidget {
   const ProjectListPage({super.key});
 
@@ -39,22 +41,19 @@ class _ProjectListPageState extends State<ProjectListPage> {
   @override
   void initState() {
     super.initState();
-    // Load projects and tasks if not already loaded
+    // Nous appelons LoadProjects et LoadTasks pour s'assurer que les données sont fraîches au démarrage.
     context.read<ProjectBloc>().add(LoadProjects());
     context.read<TasksBloc>().add(LoadTasks());
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
+  // ... (dispose)
 
-  // Filter projects based on selected filter and search query
+  /// Filtre la liste des projets en fonction du filtre sélectionné et de la recherche.
+  /// Nous combinons ici le filtrage par statut (Actif, Complété, Archivé) et par mot-clé.
   List<ProjectEntity> _filterProjects(List<ProjectEntity> projects) {
     List<ProjectEntity> filtered = projects;
 
-    // Apply status filter
+    // Application du filtre de statut
     if (_selectedFilter != 'All Projects') {
       filtered = filtered.where((project) {
         switch (_selectedFilter) {
@@ -70,7 +69,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
       }).toList();
     }
 
-    // Apply search filter
+    // Application du filtre de recherche (titre ou description)
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((project) {
         final name = project.title.toLowerCase();
@@ -83,7 +82,8 @@ class _ProjectListPageState extends State<ProjectListPage> {
     return filtered;
   }
 
-  // Show project creation modal
+  /// Affiche la modale de création de projet.
+  /// Nous utilisons showModalBottomSheet pour une expérience fluide.
   void _showProjectCreationModal() {
     showModalBottomSheet(
       context: context,
@@ -91,14 +91,13 @@ class _ProjectListPageState extends State<ProjectListPage> {
       backgroundColor: Colors.transparent,
       builder: (context) => ProjectCreationModalWidget(
         onProjectCreated: (projectData) {
-          // Dispatch create event
+          // Si la création est validée, nous déclenchons l'événement CreateProjectEvent.
           if (projectData is Map<String, dynamic>) {
-              // The widget returns a map, let's trigger the event
               context.read<ProjectBloc>().add(CreateProjectEvent(
                   title: projectData['name'],
                   description: projectData['description'],
-                  startDate: DateTime.now(), // Simplified
-                  endDate: DateTime.now().add(Duration(days: 30)), // Simplified
+                  startDate: DateTime.now(), // Date simplifiée pour le MVP
+                  endDate: DateTime.now().add(Duration(days: 30)), 
               ));
           }
           Navigator.pop(context);
@@ -107,7 +106,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-  // Show project context menu
+  /// Affiche le menu contextuel pour un projet donné.
   void _showProjectContextMenu(ProjectEntity project) {
     showModalBottomSheet(
       context: context,
@@ -123,7 +122,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ... (Context menu items using project)
+                // ... (Context menu items)
                 ListTile(
                   leading: CustomIconWidget(
                      iconName: 'delete',
@@ -145,7 +144,7 @@ class _ProjectListPageState extends State<ProjectListPage> {
     );
   }
 
-  // Handle project deletion with confirmation
+  /// Gère la suppression d'un projet après confirmation.
   void _handleProjectDelete(ProjectEntity project) {
     showDialog(
       context: context,

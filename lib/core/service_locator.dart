@@ -36,11 +36,14 @@ final GetIt sl = GetIt.instance;
 const String kBaseUrl = 'https://api.pegasus.com/v1'; 
 
 /// Initialisation de l'injection de dépendances (Service Locator).
+/// Nous enregistrons ici tous les singletons et factories nécessaires à l'application.
 Future<void> init() async {
   // --- Externes ---
+  // Nous récupérons l'instance de SharedPreferences pour le stockage local clé-valeur.
   final sharedPreferences = await SharedPreferences.getInstance();
   
   // --- Initialisation de Hive ---
+  // Nous initialisons Hive et ouvrons les boîtes (Box) pour le stockage local des données complexes.
   await Hive.initFlutter();
   Hive.registerAdapter(TaskModelAdapter());
   Hive.registerAdapter(ProjectModelAdapter());
@@ -51,6 +54,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => sharedPreferences);
   
   // --- Client HTTP (Dio) ---
+  // Nous configurons Dio avec des intercepteurs pour gérer les requêtes réseau et le logging.
   sl.registerLazySingleton(() {
     final dio = Dio(BaseOptions(
       baseUrl: kBaseUrl,
@@ -64,7 +68,8 @@ Future<void> init() async {
   sl.registerLazySingleton(() => Connectivity());
   sl.registerLazySingleton(() => FirebaseAuth.instance);
 
-  // --- Auth ---
+  // --- Auth & Authentification ---
+  // Nous enregistrons les sources de données (locale et distante) et le repository pour l'authentification.
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(firebaseAuth: sl()),
   );
@@ -79,11 +84,13 @@ Future<void> init() async {
     ),
   );
 
+  // Nous enregistrons les cas d'utilisation (Use Cases) pour l'authentification.
   sl.registerLazySingleton(() => LoginUser(sl()));
   sl.registerLazySingleton(() => RegisterUser(sl()));
   sl.registerLazySingleton(() => LogoutUser(sl()));
   sl.registerLazySingleton(() => CheckAuthStatus(sl()));
 
+  // Nous injectons le AuthBloc qui gérera la logique de présentation de l'authentification.
   sl.registerFactory(() => AuthBloc(
         loginUser: sl(),
         registerUser: sl(),
@@ -91,7 +98,8 @@ Future<void> init() async {
         checkAuthStatus: sl(),
       ));
 
-  // --- Tasks ---
+  // --- Tasks (Gestion des Tâches) ---
+  // Nous configurons les dépendances pour la gestion des tâches.
   sl.registerLazySingleton<TaskLocalDataSource>(
     () => TaskLocalDataSourceImpl(),
   );
@@ -115,6 +123,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateTask(sl()));
   sl.registerLazySingleton(() => DeleteTask(sl()));
 
+  // Nous injectons TasksBloc pour la gestion d'état des écrans de tâches.
   sl.registerFactory(() => TasksBloc(
         getTasks: sl(),
         addTask: sl(),
@@ -122,7 +131,8 @@ Future<void> init() async {
         deleteTask: sl(),
       ));
 
-  // --- Projects ---
+  // --- Projects (Gestion des Projets) ---
+  // Nous configurons les dépendances pour la fonctionnalité Projets.
   sl.registerLazySingleton<ProjectLocalDataSource>(
     () => ProjectLocalDataSourceImpl(),
   );
@@ -146,6 +156,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateProject(sl()));
   sl.registerLazySingleton(() => DeleteProject(sl()));
 
+  // Nous injectons ProjectBloc pour piloter l'interface utilisateur des projets.
   sl.registerFactory(() => ProjectBloc(
         getProjects: sl(),
         createProject: sl(),

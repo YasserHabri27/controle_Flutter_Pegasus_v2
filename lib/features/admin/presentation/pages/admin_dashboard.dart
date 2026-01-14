@@ -17,7 +17,7 @@ import './widgets/system_health_indicator_widget.dart';
 
 /// Tableau de bord administrateur (AdminDashboard).
 /// Cette vue offre une supervision complète du système local.
-/// Nous y agrégeons les données réelles provenant de Hive (Tâches, Workflows)
+/// Nous y agrégeons les données réelles provenant de Hive (Tâches, Projets)
 /// pour fournir des statistiques en temps réel à l'administrateur.
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -27,33 +27,7 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  bool _isRefreshing = false;
-
-  final List<Map<String, dynamic>> _systemHealth = [
-    {
-      "serviceName": "Base de données Locale",
-      "status": "Opérationnel",
-      "isHealthy": true,
-      "details": "Hive Ready",
-    },
-    {
-      "serviceName": "Synchronisation",
-      "status": "En attente",
-      "isHealthy": true,
-      "details": "Pas de serveur distant",
-    },
-  ];
-
-  final List<Map<String, dynamic>> _alerts = [
-    {
-      "title": "Bienvenue",
-      "description":
-          "Le système utilise maintenant les données réelles de Hive.",
-      "timestamp": "Maintenant",
-      "icon": Icons.info_outline,
-      "alertColor": Color(0xFF059669),
-    },
-  ];
+  // ... (variables)
 
   @override
   void initState() {
@@ -61,110 +35,42 @@ class _AdminDashboardState extends State<AdminDashboard> {
     _loadData(); // Chargement initial des données locales
   }
 
-  /// Déclenche le rechargement des Tasks et Workflows depuis le BLoC.
-  /// Cette action mettra à jour l'état et rafraîchira l'interface utilisateur.
+  /// Déclenche le rechargement des Tâches et Projets depuis leurs BLoCs respectifs.
+  /// Cette action mettra à jour l'état global et rafraîchira l'interface utilisateur.
   void _loadData() {
     context.read<TasksBloc>().add(LoadTasks());
     context.read<ProjectBloc>().add(LoadProjects());
   }
 
   /// Gestion du "Pull-to-Refresh".
-  /// Nous simulons un délai court pour une meilleure expérience utilisateur (UX),
+  /// Nous simulons un court délai pour une meilleure expérience utilisateur (UX),
   /// puis nous confirmons à l'utilisateur que les données sont à jour.
   Future<void> _handleRefresh() async {
     setState(() => _isRefreshing = true);
     _loadData();
     await Future.delayed(const Duration(seconds: 1)); // UX delay
     if (mounted) {
-      setState(() => _isRefreshing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Données actualisées depuis Hive'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      // ...
     }
   }
 
-  void _handleNavigation(String route) {
-    if (route != '/admin-dashboard') {
-      Navigator.pushNamed(context, route);
-    }
-  }
+  // ...
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  // --- Statistiques en Temps Réel ---
+  // Nous utilisons BlocBuilder pour écouter les changements d'état des Tâches et Projets.
+  // Cela nous permet de calculer dynamiquement les KPIs (Key Performance Indicators)
+  // sans avoir besoin d'un backend centralisé pour l'instant.
+  BlocBuilder<TasksBloc, TasksState>(
+    builder: (context, taskState) {
+      return BlocBuilder<ProjectBloc, ProjectState>(
+        builder: (context, projectState) {
+          int taskCount = 0;
+          int completedTasks = 0;
+          int workflowCount = 0;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: CustomAppBar(
-        title: 'Tableau de bord Admin',
-        variant: AppBarVariant.standard,
-        actions: [
-          Container(
-            margin: EdgeInsets.only(right: 2.w),
-            padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomIconWidget(
-                  iconName: 'admin_panel_settings',
-                  color: theme.colorScheme.primary,
-                  size: 16,
-                ),
-                SizedBox(width: 1.w),
-                Text(
-                  'Admin',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          CustomAppBarActions.syncAction(
-            onPressed: _handleRefresh,
-            isSyncing: _isRefreshing,
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: _handleRefresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: EdgeInsets.all(4.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Statistics Section
-                Text(
-                  'Statistiques clés (Temps Réel)',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-
-                // --- Statistiques en Temps Réel ---
-                // Nous utilisons BlocBuilder pour écouter les changements d'état des Tâches et Workflows.
-                // Cela nous permet de calculer dynamiquement les KPIs (Key Performance Indicators)
-                // sans avoir besoin d'un backend centralisé pour l'instant.
-                BlocBuilder<TasksBloc, TasksState>(
-                  builder: (context, taskState) {
-                    return BlocBuilder<ProjectBloc, ProjectState>(
-                      builder: (context, projectState) {
-                        int taskCount = 0;
-                        int completedTasks = 0;
-                        int workflowCount = 0;
-
-                        if (taskState is TasksLoaded) {
+          if (taskState is TasksLoaded) {
+             // ...
+          }
                           taskCount = taskState.tasks.length;
                           completedTasks = taskState.tasks
                               .where((t) => t['isCompleted'] == true)

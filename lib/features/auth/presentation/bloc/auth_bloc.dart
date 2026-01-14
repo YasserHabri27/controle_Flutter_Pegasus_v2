@@ -26,6 +26,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthCheckRequested>(_onCheckRequested);
   }
 
+  /// Vérifie si l'utilisateur est déjà connecté au démarrage.
+  /// Nous appelons le usecase checkAuthStatus pour déterminer l'état initial.
   Future<void> _onCheckRequested(
     AuthCheckRequested event,
     Emitter<AuthState> emit,
@@ -33,10 +35,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await checkAuthStatus(NoParams());
     result.fold(
       (failure) => emit(Unauthenticated()),
-      (user) => emit(Authenticated(user: user)), // Need to update AuthState to hold user
+      (user) => emit(Authenticated(user: user)),
     );
   }
 
+  /// Traite la demande de connexion de l'utilisateur.
+  /// Nous émettons d'abord un état de chargement, puis nous déléguons l'authentification au usecase loginUser.
   Future<void> _onLoginRequested(
     AuthLoginRequested event,
     Emitter<AuthState> emit,
@@ -52,6 +56,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
+  /// Traite la demande d'inscription d'un nouvel utilisateur.
+  /// Nous suivons la même logique que pour la connexion en appelant registerUser.
   Future<void> _onRegisterRequested(
     AuthRegisterRequested event,
     Emitter<AuthState> emit,
@@ -67,6 +73,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 
+  /// Gère la déconnexion de l'utilisateur.
+  /// Une fois la déconnexion réussie via logoutUser, nous réinitialisons l'état à Unauthenticated.
   Future<void> _onLogoutRequested(
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
@@ -80,7 +88,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   String _mapFailureToMessage(Failure failure) {
-    // Map failure to user-friendly message
+    // Nous retournons un message générique pour l'instant en cas d'erreur.
     return "Une erreur est survenue. Veuillez réessayer.";
   }
 }
