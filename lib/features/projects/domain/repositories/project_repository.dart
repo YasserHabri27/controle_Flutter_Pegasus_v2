@@ -1,0 +1,10 @@
+import 'package:dartz/dartz.dart';
+import 'package:pegasus_app/core/error/failures.dart';
+import '../entities/project_entity.dart';
+
+abstract class ProjectRepository {
+  Future<Either<Failure, List<ProjectEntity>>> getProjects();
+  Future<Either<Failure, void>> createProject(ProjectEntity project);
+  Future<Either<Failure, void>> updateProject(ProjectEntity project);
+  Future<Either<Failure, void>> deleteProject(String id);
+}
